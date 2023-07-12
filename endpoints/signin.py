@@ -1,11 +1,11 @@
-import request_endpoints as reqs #package 
+import endpoints as ep #package 
 
 
 
 async def signin(app_token, email, password):
 
     endpoint = "/v236/people/signin"
-    url = reqs.base_url + endpoint
+    url = ep.base_url + endpoint
 
     headers = {
     "AppToken": app_token
@@ -17,7 +17,7 @@ async def signin(app_token, email, password):
     }
 
     
-    async with reqs.aiohttp.ClientSession() as session:
+    async with ep.aiohttp.ClientSession() as session:
         async with session.post(url, headers=headers, data=payload) as response:
             if response.status == 200:
                 
