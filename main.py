@@ -1,11 +1,24 @@
 #!/usr/bin/env python
+
 import asyncio
+from dotenv import load_dotenv
+import os
+
+from request_endpoints import signin
+
+EMAIL = os.getenv("EMAIL")
+APP_TOKEN = os.getenv("APP_TOKEN")
+PASSWORD = os.getenv("PASSWORD")
+
+
+load_dotenv()
+
 
 async def main():
+    auth_token = await signin.signin(APP_TOKEN, EMAIL, PASSWORD)
 
-    print("test")
+    print(auth_token)
 
 
 if __name__ == "__main__":
-    loop=asyncio.get_event_loop()
-    loop.run_until_complete(main())
+    asyncio.run(main())
