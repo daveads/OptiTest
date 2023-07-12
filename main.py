@@ -10,6 +10,9 @@ from endpoints import retrieve_org_project as orgproject
 from endpoints.members_project import retrieve_project_members
 from endpoints.daily_org_act import retrieve_daily_activities_time
 
+#utilities
+from utilities.convert import convert_secs_hour
+
 load_dotenv()
 
 EMAIL = os.getenv("EMAIL")
@@ -29,8 +32,8 @@ async def main():
     
     print(member)
     print(projects)
-    
-    print(tracked_time)
+
+    print(await convert_secs_hour(tracked_time))
     
 
 if __name__ == "__main__":

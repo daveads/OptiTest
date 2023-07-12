@@ -1,4 +1,5 @@
 env*
 .env
 .pyc
-
+endpoints/__pycache__/*
+utilities/__pycache__/*
