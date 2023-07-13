@@ -1,8 +1,8 @@
 import asyncio
-from datetime import datetime
 from dotenv import load_dotenv
 import os
 import sys
+import time
 
 # Endpoints
 from endpoints.signin import signin
@@ -24,21 +24,28 @@ ORGANIZATION = os.getenv("ORGANIZATION")
 
 
 async def main():
-    current_date = get_current_date()
+    start_time = time.time()
 
-    auth_token = await signin(APP_TOKEN, EMAIL, PASSWORD)
+    
+    auth_token = asyncio.ensure_future(signin(APP_TOKEN, EMAIL, PASSWORD))
+
+    auth_tok = await auth_token
+
+    projects_task = asyncio.ensure_future(retieve_organization_projects(ORGANIZATION, APP_TOKEN, auth_tok))
+
+    await asyncio.gather(auth_token, projects_task)
 
     cached_auth = setkey("auth_token", auth_token)
 
     if cached_auth:
         auth_tok = cached_auth
-        # print("cached_auth")
+        #print("cached_auth")
 
     else:
-        auth_tok = auth_token
+        auth_tok = await auth_token
         # print("auth_token")
 
-    projects_task = retieve_organization_projects(ORGANIZATION, APP_TOKEN, auth_tok)
+    
     projects = await projects_task
 
     tasks = []
@@ -115,20 +122,14 @@ async def main():
     </table>
     """
 
-    """
-    # Create outputlogs folder if it doesn't exist
-    folder_name = "outputlogs"
-    if not os.path.exists(folder_name):
-        os.makedirs(folder_name)
-
-    # Write HTML to file
-    file_name = f"{folder_name}/output_{current_date}.html"
-    with open(file_name, "w") as file:
-        file.write(html_table)
-    """
-
     sys.stdout.write(html_table)
+
+    end_time = time.time()
+    execution_time = end_time - start_time
+    print(f"Execution time: {execution_time} seconds")
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(main())
+    loop.close()
