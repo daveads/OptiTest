@@ -24,22 +24,19 @@ ORGANIZATION = os.getenv("ORGANIZATION")
 
 
 async def main():
-
     current_date = get_current_date()
 
-    
     auth_token = await signin(APP_TOKEN, EMAIL, PASSWORD)
-    
-    cached_auth = setkey("auth_token",auth_token)
+
+    cached_auth = setkey("auth_token", auth_token)
 
     if cached_auth:
         auth_tok = cached_auth
-        #print("cached_auth")
+        # print("cached_auth")
 
     else:
         auth_tok = auth_token
-        #print("auth_token")
-
+        # print("auth_token")
 
     projects_task = retieve_organization_projects(ORGANIZATION, APP_TOKEN, auth_tok)
     projects = await projects_task
@@ -47,13 +44,33 @@ async def main():
     tasks = []
 
     for project in projects:
-        members_task = await retrieve_project_members(project['id'], APP_TOKEN, auth_tok)
-        timespent_task = await retrieve_daily_activities_time(members_task['user_id'], project['id'], APP_TOKEN, auth_tok, ORGANIZATION)
+        members_task = await retrieve_project_members(
+            project["id"], APP_TOKEN, auth_tok
+        )
+        timespent_task = await retrieve_daily_activities_time(
+            members_task["user_id"], project["id"], APP_TOKEN, auth_tok, ORGANIZATION
+        )
         tasks.append((project, members_task, timespent_task))
 
-    data = {project['name'].lower().replace(" ", ""): {'id': project['id'], member_response['name']: {'userid': member_response['user_id'], 'time': await convert_secs_hour(timespent_response)}} for project, member_response, timespent_response in tasks}
+    data = {
+        project["name"]
+        .lower()
+        .replace(" ", ""): {
+            "id": project["id"],
+            member_response["name"]: {
+                "userid": member_response["user_id"],
+                "time": await convert_secs_hour(timespent_response),
+            },
+        }
+        for project, member_response, timespent_response in tasks
+    }
 
-    result = [(member_name, project_name, member_data['time']) for project_name, project_data in data.items() for member_name, member_data in project_data.items() if member_name != 'id']
+    result = [
+        (member_name, project_name, member_data["time"])
+        for project_name, project_data in data.items()
+        for member_name, member_data in project_data.items()
+        if member_name != "id"
+    ]
 
     # Group employee names
     employee_names = list(set(name for name, _, _ in result))
