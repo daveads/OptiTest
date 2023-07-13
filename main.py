@@ -98,10 +98,6 @@ async def main():
     </table>
     """
 
-    # Get current date and time
-    current_datetime = datetime.now().strftime("%Y%m%d_%H%M%S")
-
-
     """
     # Create outputlogs folder if it doesn't exist
     folder_name = "outputlogs"
