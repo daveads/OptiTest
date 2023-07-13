@@ -5,3 +5,4 @@ endpoints/__pycache__/*
 utilities/__pycache__/*
 notes.md
 outputlogs/*
+__pycache__/
