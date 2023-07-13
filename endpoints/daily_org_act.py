@@ -1,5 +1,7 @@
 import endpoints as ep
 
+from utilities.current_time import get_current_date
+
 async def retrieve_daily_activities_time(user_id, project_id, app_token, auth_token):
 
     #organization_id = ep.organization_id
@@ -10,13 +12,14 @@ async def retrieve_daily_activities_time(user_id, project_id, app_token, auth_to
     page_start_id = 0
     page_limit = 5
 
+    current_date = get_current_date()
 
     headers = {
         "AppToken" : app_token,
         "AuthToken" : auth_token,
         "PageLimit" : str(page_limit),
-        "DateStart" : "2023-07-12",
-        "DateStop" : "2023-07-16",
+        "DateStart" : current_date,
+        "DateStop" : current_date,
         "UserIds" : str(user_id),
         "ProjectIds" : str(project_id)
     }

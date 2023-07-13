@@ -3,3 +3,5 @@ env*
 .pyc
 endpoints/__pycache__/*
 utilities/__pycache__/*
+notes.md
+outputlogs/*

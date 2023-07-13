@@ -18,13 +18,18 @@ async def signin(app_token, email, password):
 
     
     async with ep.aiohttp.ClientSession() as session:
-        async with session.post(url, headers=headers, data=payload) as response:
-            if response.status == 200:
+        try:
+            async with session.post(url, headers=headers, data=payload) as response:
+                if response.status == 200:
+                    
+                    data = await response.json()
+                    auth_token = data["auth_token"]
+                    return auth_token
                 
-                data = await response.json()
-                auth_token = data["auth_token"]
-                return auth_token
-            
-            else: 
-                print(f"sign-in failed with status code {response.status}") # use logger 
-                return None 
+                else: 
+                    print(f"sign-in failed with status code {response.status}") # use logger 
+                    return None 
+                
+        except ep.aiohttp.ClientError as e:
+            print(f"Error occurred during sign-in: {e}")
+            return None
