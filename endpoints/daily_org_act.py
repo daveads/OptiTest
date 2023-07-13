@@ -2,11 +2,9 @@ import endpoints as ep
 
 from utilities.current_time import get_current_date
 
-async def retrieve_daily_activities_time(user_id, project_id, app_token, auth_token):
+async def retrieve_daily_activities_time(user_id, project_id, app_token, auth_token, organ_id):
 
-    #organization_id = ep.organization_id
-
-    endpoint = f"/v236/organization/{ep.organization_id}/activity/daily"
+    endpoint = f"/v236/organization/{organ_id}/activity/daily"
     url = ep.base_url + endpoint
 
     page_start_id = 0

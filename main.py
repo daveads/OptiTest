@@ -48,7 +48,7 @@ async def main():
 
     for project in projects:
         members_task = await retrieve_project_members(project['id'], APP_TOKEN, auth_tok)
-        timespent_task = await retrieve_daily_activities_time(members_task['user_id'], project['id'], APP_TOKEN, auth_tok)
+        timespent_task = await retrieve_daily_activities_time(members_task['user_id'], project['id'], APP_TOKEN, auth_tok, ORGANIZATION)
         tasks.append((project, members_task, timespent_task))
 
     data = {project['name'].lower().replace(" ", ""): {'id': project['id'], member_response['name']: {'userid': member_response['user_id'], 'time': await convert_secs_hour(timespent_response)}} for project, member_response, timespent_response in tasks}
