@@ -1,11 +1,7 @@
 import endpoints as ep
-
 from utilities.current_time import get_current_date
 
-
-async def retrieve_daily_activities_time(
-    user_id, project_id, app_token, auth_token, organ_id
-):
+async def retrieve_daily_activities_time(user_id, project_id, app_token, auth_token, organ_id):
     endpoint = f"/v236/organization/{organ_id}/activity/daily"
     url = ep.base_url + endpoint
 
@@ -26,20 +22,23 @@ async def retrieve_daily_activities_time(
 
     params = {"page_start_id": page_start_id, "include": ["users", "tasks", "projects"]}
 
-    async with ep.aiohttp.ClientSession() as session:
-        async with session.get(url, headers=headers, params=params) as response:
-            if response.status == 200:
-                data = await response.json()
+    try:
+        async with ep.aiohttp.ClientSession() as session:
+            async with session.get(url, headers=headers, params=params) as response:
+                if response.status == 200:
+                    data = await response.json()
 
-                daily_activities = data.get("daily_activities", [])
-                tracked_time = 0
-                if daily_activities:
-                    tracked_time = daily_activities[0].get("tracked", 0)
-                return tracked_time
+                    daily_activities = data.get("daily_activities", [])
+                    tracked_time = 0
+                    if daily_activities:
+                        tracked_time = daily_activities[0].get("tracked", 0)
+                    return tracked_time
 
-            else:
-                error_message = await response.text()
-                print(
-                    f"Failed to retrieve daily activities with status code {response.status} : {error_message}"
-                )
-                return None
+                else:
+                    error_message = await response.text()
+                    raise Exception(
+                        f"Failed to retrieve daily activities with status code {response.status}: {error_message}"
+                    )
+    except (ep.aiohttp.ClientError, Exception) as e:
+        print(f"Error occurred during API call: {e}")
+        return None
