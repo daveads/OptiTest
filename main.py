@@ -2,6 +2,7 @@ import asyncio
 from datetime import datetime
 from dotenv import load_dotenv
 import os
+import sys
 
 # Endpoints
 from endpoints.signin import signin
@@ -100,6 +101,8 @@ async def main():
     # Get current date and time
     current_datetime = datetime.now().strftime("%Y%m%d_%H%M%S")
 
+
+    """
     # Create outputlogs folder if it doesn't exist
     folder_name = "outputlogs"
     if not os.path.exists(folder_name):
@@ -109,6 +112,9 @@ async def main():
     file_name = f"{folder_name}/output_{current_date}.html"
     with open(file_name, "w") as file:
         file.write(html_table)
+    """
+
+    sys.stdout.write(html_table)
 
 
 if __name__ == "__main__":
