@@ -8,9 +8,11 @@ from endpoints.signin import signin
 from endpoints.retrieve_org_project import retieve_organization_projects
 from endpoints.members_project import retrieve_project_members
 from endpoints.daily_org_act import retrieve_daily_activities_time
-from utilities.convert import convert_secs_hour
 
+# utils
+from utilities.convert import convert_secs_hour
 from utilities.current_time import get_current_date
+from utilities.redis_cache import setkey
 
 load_dotenv()
 
@@ -23,18 +25,29 @@ ORGANIZATION = os.getenv("ORGANIZATION")
 async def main():
 
     current_date = get_current_date()
+
+    
     auth_token = await signin(APP_TOKEN, EMAIL, PASSWORD)
     
-    print(auth_token, "auth_token")
+    cached_auth = setkey("auth_token",auth_token)
 
-    projects_task = retieve_organization_projects(ORGANIZATION, APP_TOKEN, auth_token)
+    if cached_auth:
+        auth_tok = cached_auth
+        #print("cached_auth")
+
+    else:
+        auth_tok = auth_token
+        #print("auth_token")
+
+
+    projects_task = retieve_organization_projects(ORGANIZATION, APP_TOKEN, auth_tok)
     projects = await projects_task
 
     tasks = []
 
     for project in projects:
-        members_task = await retrieve_project_members(project['id'], APP_TOKEN, auth_token)
-        timespent_task = await retrieve_daily_activities_time(members_task['user_id'], project['id'], APP_TOKEN, auth_token)
+        members_task = await retrieve_project_members(project['id'], APP_TOKEN, auth_tok)
+        timespent_task = await retrieve_daily_activities_time(members_task['user_id'], project['id'], APP_TOKEN, auth_tok)
         tasks.append((project, members_task, timespent_task))
 
     data = {project['name'].lower().replace(" ", ""): {'id': project['id'], member_response['name']: {'userid': member_response['user_id'], 'time': await convert_secs_hour(timespent_response)}} for project, member_response, timespent_response in tasks}
