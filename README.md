@@ -107,3 +107,7 @@ Please make sure to replace `/path/to/output/directory` and `/path/to/script/dir
 ```
 
 Feel free to further customize the content and instructions to suit your project's specific requirements.
+
+
+# Todo
+send html_table to via email...
