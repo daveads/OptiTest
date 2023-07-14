@@ -1,6 +1,17 @@
 import endpoints as ep
 
 async def retrieve_project_members(project_id, app_token, auth_token):
+    """
+    Retrieve the members of a project.
+
+    Args:
+        project_id (str): The ID of the project.
+        app_token (str): The application token.
+        auth_token (str): The authentication token.
+
+    Returns:
+        dict: The dictionary containing the user ID and name of each project member, or None if the retrieval fails.
+    """
     endpoint = f"/v236/tasks/{project_id}/members"
     url = ep.base_url + endpoint
 

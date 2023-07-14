@@ -1,7 +1,7 @@
 import endpoints as ep  # package
 
 
-async def retieve_organization_projects(organization_id, app_token, auth_token):
+async def retrieve_organization_projects(organization_id, app_token, auth_token):
     endpoint = f"/v236/organization/{organization_id}/tasks"
     url = ep.base_url + endpoint
 

@@ -6,7 +6,7 @@ import time
 
 # Endpoints
 from endpoints.signin import signin
-from endpoints.retrieve_org_project import retieve_organization_projects
+from endpoints.retrieve_org_project import retrieve_organization_projects
 from endpoints.members_project import retrieve_project_members
 from endpoints.daily_org_act import retrieve_daily_activities_time
 
@@ -26,34 +26,29 @@ ORGANIZATION = os.getenv("ORGANIZATION")
 async def main():
     start_time = time.time()
 
-    
+    # Retrieve the authentication token
     auth_token = asyncio.ensure_future(signin(APP_TOKEN, EMAIL, PASSWORD))
-
     auth_tok = await auth_token
 
-    projects_task = asyncio.ensure_future(retieve_organization_projects(ORGANIZATION, APP_TOKEN, auth_tok))
-
+    # Retrieve the organization projects
+    projects_task = asyncio.ensure_future(retrieve_organization_projects(ORGANIZATION, APP_TOKEN, auth_tok))
     await asyncio.gather(auth_token, projects_task)
 
     cached_auth = setkey("auth_token", auth_token)
 
     if cached_auth:
         auth_tok = cached_auth
-        #print("cached_auth")
-
+        # print("cached_auth")
     else:
         auth_tok = await auth_token
         # print("auth_token")
 
-    
     projects = await projects_task
 
     tasks = []
 
     for project in projects:
-        members_task = await retrieve_project_members(
-            project["id"], APP_TOKEN, auth_tok
-        )
+        members_task = await retrieve_project_members(project["id"], APP_TOKEN, auth_tok)
         timespent_task = await retrieve_daily_activities_time(
             members_task["user_id"], project["id"], APP_TOKEN, auth_tok, ORGANIZATION
         )
@@ -126,7 +121,7 @@ async def main():
 
     end_time = time.time()
     execution_time = end_time - start_time
-    print(f"Execution time: {execution_time} seconds")
+    #print(f"Execution time: {execution_time} seconds")
 
 
 if __name__ == "__main__":

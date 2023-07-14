@@ -1,24 +1,35 @@
-import endpoints as ep  # package
+import endpoints as ep  #package
 
 
 async def signin(app_token, email, password):
+    """
+    Function to perform the sign-in process.
+
+    Args:
+        app_token (str): The application token.
+        email (str): The user's email address.
+        password (str): The user's password.
+
+    Returns:
+        str: The authentication token if sign-in is successful, None otherwise.
+    """
     endpoint = "/v236/people/signin"
-    url = ep.base_url + endpoint
+    url = ep.base_url + endpoint  
 
-    headers = {"AppToken": app_token}
+    headers = {"AppToken": app_token}  
 
-    payload = {"email": email, "password": password}
+    payload = {"email": email, "password": password} 
 
     try:
-        async with ep.aiohttp.ClientSession() as session:
-            async with session.post(url, headers=headers, data=payload) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    auth_token = data.get("auth_token")
+        async with ep.aiohttp.ClientSession() as session:  
+            async with session.post(url, headers=headers, data=payload) as response:  
+                if response.status == 200:  
+                    data = await response.json() 
+                    auth_token = data.get("auth_token")  
                     return auth_token
                 else:
-                    print(f"Sign-in failed with status code {response.status}")  # Use a logger for better error handling
+                    print(f"Sign-in failed with status code {response.status}")  # will use a logger for better error handling
                     return None
-    except ep.aiohttp.ClientError as e:
+    except ep.aiohttp.ClientError as e:  
         print(f"Error occurred during sign-in: {e}")
         return None

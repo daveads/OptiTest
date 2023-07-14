@@ -2,6 +2,19 @@ import endpoints as ep
 from utilities.current_time import get_current_date
 
 async def retrieve_daily_activities_time(user_id, project_id, app_token, auth_token, organ_id):
+    """
+    Retrieve the daily activities time for a user on a specific project.
+
+    Args:
+        user_id (str): The ID of the user.
+        project_id (str): The ID of the project.
+        app_token (str): The application token.
+        auth_token (str): The authentication token.
+        organ_id (str): The ID of the organization.
+
+    Returns:
+        int: The tracked time in seconds, or None if the retrieval fails.
+    """
     endpoint = f"/v236/organization/{organ_id}/activity/daily"
     url = ep.base_url + endpoint
 
