@@ -1,19 +1,25 @@
 import asyncio
 from dotenv import load_dotenv
+import logging
 import os
 import sys
 import time
 
 # Endpoints
 from endpoints.signin import signin
-from endpoints.retrieve_org_project import retrieve_organization_projects
+from endpoints.retrive_org_members import retrieve_organization_members
 from endpoints.members_project import retrieve_project_members
-from endpoints.daily_org_act import retrieve_daily_activities_time
+from endpoints.daily_org_act import retrieve_daily_activities_time, APIError
 
-# utils
+
+
+
+# Utils
 from utilities.convert import convert_secs_hour
 from utilities.current_time import get_current_date
-from utilities.redis_cache import setkey
+from utilities.redis_cache import setkey, CacheError
+from utilities.data_filter import filter_data
+from utilities.html import generate_html_table
 
 load_dotenv()
 
@@ -22,122 +28,65 @@ APP_TOKEN = os.getenv("APP_TOKEN")
 PASSWORD = os.getenv("PASSWORD")
 ORGANIZATION = os.getenv("ORGANIZATION")
 
+# Configure logging
+logging.basicConfig(level=logging.ERROR, format="%(levelname)s: %(message)s")
+logger = logging.getLogger(__name__)
+
 
 async def main():
     start_time = time.time()
 
-    # Retrieve the authentication token
-    auth_token = asyncio.ensure_future(signin(APP_TOKEN, EMAIL, PASSWORD))
-    auth_tok = await auth_token
+    try:
+        # Retrieve the authentication token
+        auth_token = await signin(APP_TOKEN, EMAIL, PASSWORD)
 
-    # Retrieve the organization projects
-    projects_task = asyncio.ensure_future(retrieve_organization_projects(ORGANIZATION, APP_TOKEN, auth_tok))
-    await asyncio.gather(auth_token, projects_task)
+        cached_auth = setkey("auth_token", auth_token)
 
-    cached_auth = setkey("auth_token", auth_token)
+        if cached_auth:
+            auth_tok = cached_auth
+        else:
+            auth_tok = await auth_token
 
-    if cached_auth:
-        auth_tok = cached_auth
-    else:
-        auth_tok = await auth_token
 
-    projects = await projects_task
+        daily_activities = asyncio.ensure_future(retrieve_daily_activities_time(APP_TOKEN, auth_tok,ORGANIZATION,))
 
-    tasks = []
+        
+        # Retrieve the organization members
+        
+        employees_names = asyncio.ensure_future(retrieve_organization_members(ORGANIZATION, APP_TOKEN, auth_tok))
 
-    for project in projects:
-        members_task = await retrieve_project_members(project["id"], APP_TOKEN, auth_tok)
-        timespent_task = await retrieve_daily_activities_time(
-            members_task["user_id"], project["id"], APP_TOKEN, auth_tok, ORGANIZATION
-        )
-        tasks.append((project, members_task, timespent_task))
+        await asyncio.gather(daily_activities, employees_names)
 
-    data = {
-        project["name"]
-        .lower()
-        .replace(" ", ""): {
-            "id": project["id"],
-            member_response["name"]: {
-                "userid": member_response["user_id"],
-                "time": await convert_secs_hour(timespent_response),
-            },
-        }
-        for project, member_response, timespent_response in tasks
-    }
 
-    result = [
-        (member_name, project_name, member_data["time"])
-        for project_name, project_data in data.items()
-        for member_name, member_data in project_data.items()
-        if member_name != "id"
-    ]
+        employees = await employees_names
+        activities = await daily_activities 
 
-    # Group employee names
-    employee_names = list(set(name for name, _, _ in result))
-    employee_names.sort()
+        # Convert tracked time to hours
+        for _, project_data in activities.items():
+            user_ids = project_data['user_ids']
+            for user in user_ids:
+                tracked_time_seconds = user['tracked_time']
+                tracked_time_hours = await convert_secs_hour(tracked_time_seconds)
+                user['tracked_time'] = tracked_time_hours
 
-    html_table = """
-    <html>
-        <head>
-            <style>
-                table {
-                    border-collapse: collapse;
-                    width: 100%;
-                }
-                
-                th, td {
-                    text-align: left;
-                    padding: 8px;
-                }
-                
-                th {
-                    background-color: #f2f2f2;
-                }
-            </style>
-        </head>
-        <body>
-            <p style="text-align: center; font-weight: bold;">Daily Employee Activities</p>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Employee</th>
-                        <th>Project</th>
-                        <th>Time Spent</th>
-                    </tr>
-                </thead>
-                <tbody>
-    """
 
-    for name in employee_names:
-        projects = [proj for emp, proj, _ in result if emp == name]
-        time_spent = [time for emp, _, time in result if emp == name]
-        num_projects = len(projects)
 
-        if num_projects > 0:
-            html_table += f"""
-            <tr>
-                <td rowspan='{num_projects}'>{name}</td>
-                <td>{projects[0]}</td>
-                <td>{time_spent[0]}</td>
-            </tr>
-            """
+        #filtered data
+        Data = await filter_data(activities, employees)
 
-            for i in range(1, num_projects):
-                html_table += f"""
-                <tr>
-                    <td>{projects[i]}</td>
-                    <td>{time_spent[i]}</td>
-                </tr>
-                """
+        html_table = await generate_html_table(Data)
+        sys.stdout.write(html_table)
 
-    html_table += """
-                </tbody>
-            </table>
-        </body>
-    </html>
-    """
+    except CacheError as e:
+        logger.error(f"Cache error occurred: {e}")
+        # Handle the CacheError and log the error message
 
-    sys.stdout.write(html_table)
+    except APIError as e:
+        logger.error(f"API error occurred: {e}")
+
+    except Exception as e:
+        logger.exception("An unexpected error occurred")
+        # Log the exception stack trace and handle the unexpected error
 
     end_time = time.time()
     execution_time = end_time - start_time

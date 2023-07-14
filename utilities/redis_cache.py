@@ -1,6 +1,12 @@
 import redis
 
 
+class CacheError(Exception):
+    def __init__(self, message):
+        self.message = message
+        super().__init__(self.message)
+
+
 def check_redis_connection():
     """
     Check the connection to the Redis server.
@@ -13,8 +19,8 @@ def check_redis_connection():
         redis_conn = redis.Redis(connection_pool=pool)
         return redis_conn.ping()
 
-    except redis.exceptions.ConnectionError:
-        return False
+    except redis.exceptions.ConnectionError as e:
+        raise CacheError("Redis connection error occurred.") from e
 
 
 def setkey(key, value):
@@ -28,15 +34,17 @@ def setkey(key, value):
     Returns:
         str: The value of the key in Redis cache, or None if the connection fails.
     """
-    if check_redis_connection():
-        redis_conn = redis.Redis()
+    try:
+        if check_redis_connection():
+            redis_conn = redis.Redis()
 
-        if not redis_conn.exists(key):
-            redis_conn.set(key, value)
-            return redis_conn.get(key).decode("utf-8")
+            if not redis_conn.exists(key):
+                redis_conn.set(key, value)
+                return redis_conn.get(key).decode("utf-8")
+            else:
+                return redis_conn.get(key).decode("utf-8")
         else:
-            # print("exist")
-            return redis_conn.get(key).decode("utf-8")
+            raise CacheError("Failed to connect to Redis server.")
 
-    else:
-        return None
+    except redis.exceptions.RedisError as e:
+        raise CacheError("Redis error occurred.") from e

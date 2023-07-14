@@ -1,4 +1,9 @@
+import logging
 import endpoints as ep
+from utilities.api_exceptions import APIError
+
+# Create a logger instance
+logger = logging.getLogger(__name__)
 
 async def retrieve_project_members(project_id, app_token, auth_token):
     """
@@ -55,12 +60,11 @@ async def retrieve_project_members(project_id, app_token, auth_token):
                     return user_dict
                 else:
                     error_message = await response.text()
-                    print(
+                    logger.error(
                         f"Failed to retrieve project members with status code {response.status}: {error_message}"
                     )
-    except ep.aiohttp.ClientError as e:
-        print(f"An error occurred during the request: {e}")
-    except Exception as e:
-        print(f"An unexpected error occurred: {e}")
+                    raise APIError(f"Failed to retrieve project members with status code {response.status}")
 
-    return None
+    except Exception as e:
+        logger.error(f"An error occurred during the request: {e}")
+        raise APIError("An error occurred during the request")
