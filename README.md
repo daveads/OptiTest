@@ -65,7 +65,12 @@ output_dir="/path/to/output/directory"  # Output directory for the generated HTM
 
 directory="/path/to/script/directory"  # OptiTest directory <string>
 
-Manager_email="manager@example.com"  # Manager's email <string>
+Manager_email="hiring2@reef.pl"  # Manager's email <string>
+
+sever_company_email="the.dfdafsdfad@gmail.com" <string>
+
+sever_company_password="password"  # create an application specific password via gmail <string>
+
 ```
 
 ## Usage
@@ -91,9 +96,9 @@ crontab -e
 
 2. Add the following line at the end to run the `/path/to/cron_wrapper.sh` script daily at 11:50 PM:
 ```bash
-50 23 * * * /path/to/cron_wrapper.sh
+50 23 * * * /path/to/cron_wrapper.py
 ```
-Make sure to replace `/path/to/cron_wrapper.sh` with the actual path to the `cron_wrapper.sh` or `cron_wrapper.py` script.
+Make sure to replace `/path/to/cron_wrapper.py` with the actual path to the `cron_wrapper.py` script.
 
 3. Save and exit the crontab file.
 

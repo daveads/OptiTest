@@ -38,10 +38,8 @@ async def main():
 
     if cached_auth:
         auth_tok = cached_auth
-        # print("cached_auth")
     else:
         auth_tok = await auth_token
-        # print("auth_token")
 
     projects = await projects_task
 
@@ -79,15 +77,35 @@ async def main():
     employee_names.sort()
 
     html_table = """
-    <table>
-        <thead>
-            <tr>
-                <th>Employee</th>
-                <th>Project</th>
-                <th>Time Spent</th>
-            </tr>
-        </thead>
-        <tbody>
+    <html>
+        <head>
+            <style>
+                table {
+                    border-collapse: collapse;
+                    width: 100%;
+                }
+                
+                th, td {
+                    text-align: left;
+                    padding: 8px;
+                }
+                
+                th {
+                    background-color: #f2f2f2;
+                }
+            </style>
+        </head>
+        <body>
+            <p style="text-align: center; font-weight: bold;">Daily Employee Activities</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Employee</th>
+                        <th>Project</th>
+                        <th>Time Spent</th>
+                    </tr>
+                </thead>
+                <tbody>
     """
 
     for name in employee_names:
@@ -113,8 +131,10 @@ async def main():
                 """
 
     html_table += """
-        </tbody>
-    </table>
+                </tbody>
+            </table>
+        </body>
+    </html>
     """
 
     sys.stdout.write(html_table)
