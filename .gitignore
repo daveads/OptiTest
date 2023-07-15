@@ -6,3 +6,5 @@ utilities/__pycache__/*
 notes.md
 outputlogs/*
 __pycache__/
+test/test_usd.md
+test/exp/*
