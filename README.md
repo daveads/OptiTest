@@ -71,6 +71,11 @@ sever_company_email="the.dfdafsdfad@gmail.com" <string>
 
 sever_company_password="password"  # create an application specific password via gmail <string>
 
+start_date ='2023-07-12' # the start date you want to to be returned <string>
+end_date ='2023-07-12' # the end date you want to be returned <string>
+
+NOTE: if the start_date or end_date isn't present current date is used by default
+
 ```
 
 ## Usage

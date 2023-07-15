@@ -4,11 +4,11 @@ import logging
 import os
 import sys
 import time
+from utilities.current_time import get_current_date
 
 # Endpoints
 from endpoints.signin import signin
 from endpoints.retrive_org_members import retrieve_organization_members
-from endpoints.members_project import retrieve_project_members
 from endpoints.daily_org_act import retrieve_daily_activities_time, APIError
 
 
@@ -16,17 +16,28 @@ from endpoints.daily_org_act import retrieve_daily_activities_time, APIError
 
 # Utils
 from utilities.convert import convert_secs_hour
-from utilities.current_time import get_current_date
 from utilities.redis_cache import setkey, CacheError
 from utilities.data_filter import filter_data
 from utilities.html import generate_html_table
 
 load_dotenv()
+current_date = get_current_date()
 
 EMAIL = os.getenv("EMAIL")
 APP_TOKEN = os.getenv("APP_TOKEN")
 PASSWORD = os.getenv("PASSWORD")
 ORGANIZATION = os.getenv("ORGANIZATION")
+
+
+start_date = os.getenv("start_date")
+end_date = os.getenv("end_date")
+
+if start_date.strip() == "" and end_date.strip() == "":
+    start_date = current_date
+    end_date = current_date
+
+
+
 
 # Configure logging
 logging.basicConfig(level=logging.ERROR, format="%(levelname)s: %(message)s")
@@ -48,7 +59,7 @@ async def main():
             auth_tok = await auth_token
 
 
-        daily_activities = asyncio.ensure_future(retrieve_daily_activities_time(APP_TOKEN, auth_tok,ORGANIZATION,))
+        daily_activities = asyncio.ensure_future(retrieve_daily_activities_time(APP_TOKEN, auth_tok,ORGANIZATION, start_date, end_date))
 
         
         # Retrieve the organization members

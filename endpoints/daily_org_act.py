@@ -1,12 +1,11 @@
 import logging
 import endpoints as ep
-from utilities.current_time import get_current_date
 from utilities.api_exceptions import APIError
 
 # Create a logger instance
 logger = logging.getLogger(__name__)
 
-async def retrieve_daily_activities_time(app_token, auth_token, organ_id):
+async def retrieve_daily_activities_time(app_token, auth_token, organ_id, start_date, end_date):
     """
     Retrieve the daily activities time for users on different projects.
 
@@ -14,6 +13,8 @@ async def retrieve_daily_activities_time(app_token, auth_token, organ_id):
         app_token (str): The application token.
         auth_token (str): The authentication token.
         organ_id (str): The ID of the organization.
+        start_date (str): The start date for the report in "YYYY-MM-DD" format.
+        end_date (str): The end date for the report in "YYYY-MM-DD" format.
 
     Returns:
         dict: A dictionary containing project IDs as keys and their corresponding project information as values.
@@ -26,16 +27,12 @@ async def retrieve_daily_activities_time(app_token, auth_token, organ_id):
     page_start_id = 0
     page_limit = 5
 
-    current_date = get_current_date()
-
     headers = {
         "AppToken": app_token,
         "AuthToken": auth_token,
         "PageLimit": str(page_limit),
-        #"DateStart": current_date,
-        #"DateStop": current_date
-        "DateStart" : "2023-07-12",
-        "DateStop" : "2023-07-12"
+        "DateStart": start_date,
+        "DateStop": end_date
     }
 
     params = {"page_start_id": page_start_id, "include": ["users", "projects"]}
@@ -48,7 +45,7 @@ async def retrieve_daily_activities_time(app_token, auth_token, organ_id):
 
                     projects = data.get("projects", [])
                     daily_activities = data.get("daily_activities", [])
-                    
+
                     project_info = {}
 
                     for project in projects:
@@ -78,7 +75,7 @@ async def retrieve_daily_activities_time(app_token, auth_token, organ_id):
                         info["user_ids"] = user_info_list
 
                     return project_info
-                
+
                 else:
                     error_message = await response.text()
                     logger.error(
